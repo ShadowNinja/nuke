@@ -28,5 +28,6 @@ Licenses
   * Code: LGPLv3+ by ShadowNinja.
   * Sounds: Unknown
   * Iron and mese TNT textures: CC-BY-SA 3.0 by sfan5
+  * Missle model and texture: WTFPL by Jordach
   * Everything else: CC-BY-SA 4.0 by ShadowNinja
 
