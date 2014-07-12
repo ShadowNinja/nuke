@@ -13,12 +13,13 @@ local function get_missle(pos)
 	end
 end
 
-local function launch_missle(pos, strike_pos)
+local function launch_missle(pos, strike_pos, player_name)
 	local e = get_missle(pos)
 	if not e then return end
 	e.state = 1
 	e.origin = pos
 	e.strike_pos = strike_pos
+	e.player_name = player_name
 	local ppos = vector.new(pos)
 	ppos.y = ppos.y + 2
 	minetest.add_particlespawner({
@@ -57,9 +58,10 @@ minetest.register_entity("nuke:missle", {
 	state = 0,
 	--origin = vector.new(),
 	on_activate = function(self, static_data)
-		if static_data == "" then return end
-		for k, v in pairs(minetest.deserialize(static_data)) do
-			self[k] = v
+		if static_data and static_data ~= "" then
+			for k, v in pairs(minetest.deserialize(static_data)) do
+				self[k] = v
+			end
 		end
 	end,
 	on_step = function(self, dtime)
@@ -86,13 +88,11 @@ minetest.register_entity("nuke:missle", {
 				self.state = 2
 			end
 			if node.name ~= "air" and pos.y >= self.origin.y + 2 then
-				nuke:explode(pos, misfire_radius)
-				o:remove()
+				nuke:detonate(self, misfire_radius)
 			end
 		elseif self.state == 2 then
 			if node.name ~= "air" then
-				nuke:explode(pos, radius)
-				o:remove()
+				nuke:detonate(self, radius)
 			end
 		end
 	end,
@@ -101,12 +101,13 @@ minetest.register_entity("nuke:missle", {
 	end,
 	get_staticdata = function(self)
 		if self.state == 0 then
-			return ""
+			return
 		end
 		return minetest.serialize({
 			state = self.state,
 			origin = self.origin,
 			strike_pos = self.strike_pos,
+			player_name = self.player_name,
 		})
 	end,
 })
@@ -149,13 +150,14 @@ minetest.register_node("nuke:missle_controller", {
 		meta:set_string("formspec", get_controller_formspec(strike_pos))
 		if fields.fire then
 			if not nuke:can_detonate(player_name) then
-				minetest.chat_send_player(player_name, "You can't detonate nukes!")
+				minetest.chat_send_player(player_name,
+						"You can't launch missles!")
 				return
 			end
 			local dir = minetest.facedir_to_dir(node.param2)
 			dir = vector.multiply(dir, 2)  -- The launcher is two nodes behind us
 			local launcher_pos = vector.add(pos, dir)
-			launch_missle(launcher_pos, strike_pos)
+			launch_missle(launcher_pos, strike_pos, player_name)
 		end
 	end,
 })

@@ -10,11 +10,14 @@ function nuke:can_detonate(player_name)
 end
 
 
-function nuke:ignite(pos, name)
+function nuke:ignite(pos, node_name, player_name)
 	minetest.dig_node(pos)
 	minetest.sound_play("nuke_ignite",
 			{pos = pos, gain = 1.0, max_hear_distance = 10})
-	return minetest.add_entity(pos, name)
+	local o = minetest.add_entity(pos, node_name)
+	local e = o:get_luaentity()
+	e.player_name = player_name
+	return o
 end
 
 
@@ -76,7 +79,50 @@ function nuke:effects(pos, radius)
 end
 
 
-function nuke:explode(pos, radius)
+function nuke:check_protection(pos, radius, player_name)
+	if areas and areas.canInteractInArea and
+			not areas:canInteractInArea(
+				vector.subtract(pos, radius),
+				vector.add     (pos, radius),
+				player_name) then
+		return false
+	end
+	return true
+end
+
+
+function nuke:detonate(entity, radius)
+	local e, o = entity, entity.object
+	local pos = o:getpos()
+
+	o:remove()
+
+	-- Check protection
+	if not self:check_protection(pos, radius, e.player_name) then
+		if e.player_name then
+			minetest.chat_send_player(e.player_name,
+					"Can't detonate, area protected.")
+		end
+		minetest.add_item(pos, e.name)
+		return
+	end
+
+	-- Cause entity physics even if we are put out.
+	-- This isn't very realistic but it allows for cannons.
+	minetest.sound_play("nuke_explode",
+		{pos = pos, gain = 1.0, max_hear_distance = 16})
+	self:entity_physics(pos, radius)
+	local node = minetest.get_node(pos)
+	if minetest.get_item_group(node.name, "puts_out_fire") <= 0 then
+		self:explode(pos, radius, e.player_name)
+	end
+	if self.config:get_bool("fancy") then
+		self:effects(pos, radius)
+	end
+end
+
+
+function nuke:explode(pos, radius, player_name)
 	local start = os.clock()
 	local pos = vector.round(pos)
 	local vm = VoxelManip()
@@ -103,7 +149,7 @@ function nuke:explode(pos, radius)
 				p.x = pos.x + x
 				p.y = pos.y + y
 				p.z = pos.z + z
-				self:ignite(p, name)
+				self:ignite(p, name, player_name)
 			end
 			data[vi] = c_air
 		end

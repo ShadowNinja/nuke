@@ -35,7 +35,7 @@ local function on_punch(pos, node, player)
 	local player_name = player:get_player_name()
 	if stack:get_name() == "default:torch" and
 			nuke:can_detonate(player_name) then
-		nuke:ignite(pos, node.name)
+		nuke:ignite(pos, node.name, player_name)
 	end
 end
 

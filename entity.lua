@@ -1,6 +1,11 @@
 nuke.entity = {}
 
 function nuke.entity:on_activate(staticdata)
+	if static_data and static_data ~= "" then
+		for k, v in pairs(minetest.deserialize(static_data)) do
+			self[k] = v
+		end
+	end
 	local o = self.object
 	o:setvelocity({x=0, y=3, z=0})
 	o:setacceleration({x=0, y=-5, z=0})
@@ -50,24 +55,8 @@ function nuke.entity:on_step(dtime)
 		self.blinkstatus = not self.blinkstatus
 	end
 
-	if self.timer < 10 then
-		return
-	end
-	-- Explode
-	local pos = vector.round(o:getpos())
-	local node = minetest.get_node(pos)
-
-	-- Cause entity physics even if we are put out.
-	-- This isn't very realistic but it allows for cannons.
-	o:remove()
-	minetest.sound_play("nuke_explode",
-		{pos = pos, gain = 1.0, max_hear_distance = 16})
-	nuke:entity_physics(pos, self.radius)
-	if minetest.get_item_group(node.name, "puts_out_fire") <= 0 then
-		nuke:explode(pos, self.radius)
-	end
-	if nuke.config:get_bool("fancy") then
-		nuke:effects(pos, self.radius)
+	if self.timer > 10 then
+		nuke:detonate(self, self.radius)
 	end
 end
 
@@ -87,5 +76,8 @@ function nuke.entity:get_staticdata()
 	end
 	-- For add_particlespawner hack to detect if we've been removed
 	self.smoke_spawner = nil
+	return minetest.serialize({
+		player_name = self.player_name,
+	})
 end
 
