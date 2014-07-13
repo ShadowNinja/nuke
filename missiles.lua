@@ -112,6 +112,7 @@ minetest.register_entity("nuke:missile", {
 })
 
 minetest.register_node("nuke:missile_controller", {
+	description = "Missile controller",
 	tiles = {"nuke_missile_controller_top.png", "nuke_missile_controller.png",
 	         "nuke_missile_controller.png",     "nuke_missile_controller.png",
 	         "nuke_missile_controller.png",     "nuke_missile_controller.png"},
@@ -162,6 +163,7 @@ minetest.register_node("nuke:missile_controller", {
 })
 
 minetest.register_node("nuke:missile_launcher", {
+	description = "Missile launcher",
 	tiles = {"nuke_missile_launcher.png"},
 	groups = {cracky=1},
 	paramtype = "light",
