@@ -3,8 +3,8 @@ local worldpath = minetest.get_worldpath()
 nuke.config = Settings(worldpath..DIR_DELIM.."nuke.conf")
 
 local defaults = {
-	missle_radius = "16",
-	missle_misfire_radius = "5",
+	missile_radius = "16",
+	missile_misfire_radius = "5",
 	mese_radius = "24",
 	iron_radius = "12",
 	tnt_radius = "3",

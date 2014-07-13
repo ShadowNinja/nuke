@@ -1,20 +1,20 @@
 
-local radius = assert(tonumber(nuke.config:get("missle_radius")),
-		"missle_radius must be convertible to a number")
-local misfire_radius = assert(tonumber(nuke.config:get("missle_misfire_radius")),
-		"missle_misfire_radius must be convertible to a number")
+local radius = assert(tonumber(nuke.config:get("missile_radius")),
+		"missile_radius must be convertible to a number")
+local misfire_radius = assert(tonumber(nuke.config:get("missile_misfire_radius")),
+		"missile_misfire_radius must be convertible to a number")
 
-local function get_missle(pos)
+local function get_missile(pos)
 	for _, o in pairs(minetest.get_objects_inside_radius(pos, 1)) do
 		local e = o:get_luaentity()
-		if e and e.name == "nuke:missle" then
+		if e and e.name == "nuke:missile" then
 			return e
 		end
 	end
 end
 
-local function launch_missle(pos, strike_pos, player_name)
-	local e = get_missle(pos)
+local function launch_missile(pos, strike_pos, player_name)
+	local e = get_missile(pos)
 	if not e then return end
 	e.state = 1
 	e.origin = pos
@@ -48,10 +48,10 @@ local function get_controller_formspec(strike_pos)
 		.."button_exit[2,1;2,1;fire;Fire!]"
 end
 
-minetest.register_entity("nuke:missle", {
-	textures = {"nuke_missle.png"},
+minetest.register_entity("nuke:missile", {
+	textures = {"nuke_missile.png"},
 	visual = "mesh",
-	mesh = "nuke_missle.x",
+	mesh = "nuke_missile.x",
 	visual_size = {x=3, y=3, z=3},
 	phisical = true,
 	collisionbox = {-0.5, -0.5, -0.5, 0.5, 4, 0.5},
@@ -73,8 +73,7 @@ minetest.register_entity("nuke:missle", {
 			if not vector.equals(self.object:getvelocity(), {x=0, y=0, z=0}) then
 				-- We are in standby but moving, probably got unloaded
 				-- Drop ourselves
-				minetest.add_item(pos, "nuke:missle")
-				assert(false)
+				minetest.add_item(pos, "nuke:missile")
 			end
 			return
 		elseif self.state == 1 then
@@ -97,7 +96,7 @@ minetest.register_entity("nuke:missle", {
 		end
 	end,
 	on_punch = function(self, player)
-		player:get_inventory():add_item("main", "nuke:missle")
+		player:get_inventory():add_item("main", "nuke:missile")
 	end,
 	get_staticdata = function(self)
 		if self.state == 0 then
@@ -112,10 +111,10 @@ minetest.register_entity("nuke:missle", {
 	end,
 })
 
-minetest.register_node("nuke:missle_controller", {
-	tiles = {"nuke_missle_controller_top.png", "nuke_missle_controller.png",
-	         "nuke_missle_controller.png",     "nuke_missle_controller.png",
-	         "nuke_missle_controller.png",     "nuke_missle_controller.png"},
+minetest.register_node("nuke:missile_controller", {
+	tiles = {"nuke_missile_controller_top.png", "nuke_missile_controller.png",
+	         "nuke_missile_controller.png",     "nuke_missile_controller.png",
+	         "nuke_missile_controller.png",     "nuke_missile_controller.png"},
 	groups = {cracky=1},
 	paramtype = "light",
 	paramtype2 = "facedir",
@@ -132,7 +131,7 @@ minetest.register_node("nuke:missle_controller", {
 		local meta = minetest.get_meta(pos)
 		local pos_str = minetest.pos_to_string(pos)
 		meta:set_string("strikepos", pos_str)
-		meta:set_string("infotext", "Missle controller")
+		meta:set_string("infotext", "Missile controller")
 		meta:set_string("formspec", get_controller_formspec(pos))
 	end,
 	on_receive_fields = function(pos, formname, fields, player)
@@ -151,19 +150,19 @@ minetest.register_node("nuke:missle_controller", {
 		if fields.fire then
 			if not nuke:can_detonate(player_name) then
 				minetest.chat_send_player(player_name,
-						"You can't launch missles!")
+						"You can't launch missiles!")
 				return
 			end
 			local dir = minetest.facedir_to_dir(node.param2)
 			dir = vector.multiply(dir, 2)  -- The launcher is two nodes behind us
 			local launcher_pos = vector.add(pos, dir)
-			launch_missle(launcher_pos, strike_pos, player_name)
+			launch_missile(launcher_pos, strike_pos, player_name)
 		end
 	end,
 })
 
-minetest.register_node("nuke:missle_launcher", {
-	tiles = {"nuke_missle_launcher.png"},
+minetest.register_node("nuke:missile_launcher", {
+	tiles = {"nuke_missile_launcher.png"},
 	groups = {cracky=1},
 	paramtype = "light",
 	paramtype2 = "facedir",
@@ -181,32 +180,32 @@ minetest.register_node("nuke:missle_launcher", {
 	},
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
-		meta:set_string("infotext", "Missle launcher")
+		meta:set_string("infotext", "Missile launcher")
 	end,
 	on_rightclick = function(pos, node, clicker, itemstack)
 		local meta = minetest.get_meta(pos)
-		if get_missle(pos) then
+		if get_missile(pos) then
 			return itemstack
 		end
-		if itemstack:get_name() == "nuke:missle" then
+		if itemstack:get_name() == "nuke:missile" then
 			itemstack:take_item()
-			minetest.add_entity(pos, "nuke:missle")
+			minetest.add_entity(pos, "nuke:missile")
 		end
 		return itemstack
 	end,
 	after_dig_node = function(pos, node, meta, player)
-		local e = get_missle(pos)
+		local e = get_missile(pos)
 		if e then
 			e.object:remove()
-			player:get_inventory():add_item("main", "nuke:missle")
+			player:get_inventory():add_item("main", "nuke:missile")
 		end
 	end,
 })
 
-minetest.register_craftitem("nuke:missle", {
-	description = "Missle",
-	inventory_image = "nuke_missle_wield.png",
-	wield_image = "nuke_missle_wield.png",
+minetest.register_craftitem("nuke:missile", {
+	description = "Missile",
+	inventory_image = "nuke_missile_wield.png",
+	wield_image = "nuke_missile_wield.png",
 	stack_max = 1,
 })
 

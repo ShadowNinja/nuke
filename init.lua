@@ -15,5 +15,5 @@ dofile(modpath .. "entity.lua")
 dofile(modpath .. "api.lua")
 dofile(modpath .. "internal.lua")
 dofile(modpath .. "definitions.lua")
-dofile(modpath .. "missles.lua")
+dofile(modpath .. "missiles.lua")
 
