@@ -1,5 +1,13 @@
 nuke.entity = {}
 
+local function remove_smoke(e)
+	if e.smoke_spawner then
+		minetest.delete_particlespawner(e.smoke_spawner)
+	end
+	-- For add_particlespawner hack to detect if we've been removed
+	e.smoke_spawner = nil
+end
+
 function nuke.entity:on_activate(staticdata)
 	if static_data and static_data ~= "" then
 		for k, v in pairs(minetest.deserialize(static_data)) do
@@ -24,9 +32,10 @@ function nuke.entity:on_activate(staticdata)
 		-- use minetest.after to call it later.
 		minetest.after(0, function()
 			if self.smoke_spawner == false then
+				local time = self.timer
 				self.smoke_spawner = minetest.add_particlespawner({
-					amount = 512,
-					time = 10,
+					amount = 50 * time,
+					time = time,
 					minpos = min_pos,
 					maxpos = max_pos,
 					minvel = {x=-1, y=1, z=-1},
@@ -47,35 +56,28 @@ end
 
 function nuke.entity:on_step(dtime)
 	local o = self.object
-	self.timer = self.timer + dtime
-	self.blinktimer = self.blinktimer + (dtime * self.timer)
+	self.timer = self.timer - dtime
+	self.blinktimer = self.blinktimer + ((5 * dtime) / self.timer)
 	if self.blinktimer > 1 then
 		self.blinktimer = self.blinktimer - 1
 		o:settexturemod(self.blinkstatus and "" or "^[brighten")
 		self.blinkstatus = not self.blinkstatus
 	end
 
-	if self.timer > 10 then
+	if self.timer <= 0 then
 		nuke:detonate(self, self.radius)
+		remove_smoke(self)
 	end
 end
 
 function nuke.entity:on_punch(hitter)
 	self.object:remove()
+	remove_smoke(self)
 	hitter:get_inventory():add_item("main", self.name)
-	if self.smoke_spawner then
-		minetest.delete_particlespawner(self.smoke_spawner)
-	end
-	-- For add_particlespawner hack to detect if we've been removed
-	self.smoke_spawner = nil
 end
 
 function nuke.entity:get_staticdata()
-	if self.smoke_spawner then
-		minetest.delete_particlespawner(self.smoke_spawner)
-	end
-	-- For add_particlespawner hack to detect if we've been removed
-	self.smoke_spawner = nil
+	remove_smoke(self)
 	return minetest.serialize({
 		player_name = self.player_name,
 	})

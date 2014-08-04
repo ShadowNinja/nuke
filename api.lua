@@ -58,7 +58,7 @@ function nuke:register_nuke(name, description, radius, tiles)
 		visual = "cube",
 		groups = entity_groups,
 		health = 10,
-		timer = 1,
+		timer = 10,
 		blinktimer = 0,
 		blinkstatus = true,
 		on_activate = e.on_activate,

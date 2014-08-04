@@ -10,13 +10,16 @@ function nuke:can_detonate(player_name)
 end
 
 
-function nuke:ignite(pos, node_name, player_name)
+function nuke:ignite(pos, node_name, player_name, time)
 	minetest.dig_node(pos)
 	minetest.sound_play("nuke_ignite",
 			{pos = pos, gain = 1.0, max_hear_distance = 10})
 	local o = minetest.add_entity(pos, node_name)
 	local e = o:get_luaentity()
 	e.player_name = player_name
+	if time then
+		e.timer = time
+	end
 	return o
 end
 
@@ -149,7 +152,7 @@ function nuke:explode(pos, radius, player_name)
 				p.x = pos.x + x
 				p.y = pos.y + y
 				p.z = pos.z + z
-				self:ignite(p, name, player_name)
+				self:ignite(p, name, player_name, 1)
 			end
 			data[vi] = c_air
 		end
