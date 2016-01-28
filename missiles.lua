@@ -51,7 +51,7 @@ end
 minetest.register_entity("nuke:missile", {
 	textures = {"nuke_missile.png"},
 	visual = "mesh",
-	mesh = "nuke_missile.x",
+	mesh = "nuke_missile.obj",
 	visual_size = {x=3, y=3, z=3},
 	phisical = true,
 	collisionbox = {-0.5, -0.5, -0.5, 0.5, 4, 0.5},
