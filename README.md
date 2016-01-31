@@ -25,7 +25,7 @@ It contains the following settings:
 Licenses
 --------
 
-  * Code: LGPLv3+ by ShadowNinja.
+  * Code: LGPLv2.1+ by ShadowNinja.
   * Sounds: Unknown
   * Iron and mese TNT textures: CC-BY-SA 3.0 by sfan5
   * Missile model and texture: WTFPL by Jordach
